@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register Page</title>
+    <title>Register</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,24 +15,29 @@
             margin: 0;
             background-color: #f0f0f0;
         }
-        
+
         .register-container {
             background-color: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             width: 300px;
         }
-        
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
         .form-group {
             margin-bottom: 15px;
         }
-        
+
         label {
             display: block;
             margin-bottom: 5px;
         }
-        
+
         input {
             width: 100%;
             padding: 8px;
@@ -39,83 +45,149 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
-        
+
         button {
             width: 100%;
             padding: 10px;
-            background-color: #28a745;
+            background-color: #007bff;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
         }
-        
+
         button:hover {
-            background-color: #218838;
+            background-color: #0056b3;
         }
-        
+
         .error-message {
             color: red;
             font-size: 14px;
             margin-top: 10px;
             display: none;
+            text-align: center;
         }
-        
+
         .success-message {
             color: green;
             font-size: 14px;
             margin-top: 10px;
             display: none;
+            text-align: center;
         }
-        
-        .login-link {
+
+        .field-error {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .nav-link {
             text-align: center;
             margin-top: 15px;
         }
-        
-        .login-link a {
+
+        .nav-link a {
             color: #007bff;
             text-decoration: none;
         }
-        
-        .login-link a:hover {
+
+        .nav-link a:hover {
+            text-decoration: underline;
+        }
+
+        .api-url {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .api-url a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .api-url a:hover {
             text-decoration: underline;
         }
     </style>
 </head>
+
 <body>
     <div class="register-container">
         <h2>Register</h2>
+        <div class="api-url" id="apiUrlDisplay"></div>
         <form id="registerForm">
             <div class="form-group">
                 <label for="username">Username:</label>
                 <input type="text" id="username" name="username" required>
+                <div id="usernameError" class="field-error"></div>
             </div>
             <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" required>
+                <div id="passwordError" class="field-error"></div>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Konfirmasi Password:</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
             </div>
             <button type="submit">Register</button>
-            <div id="errorMessage" class="error-message">
-                Terjadi kesalahan saat registrasi!
-            </div>
-            <div id="successMessage" class="success-message">
-                Registrasi berhasil! Mengalihkan ke login...
-            </div>
         </form>
-        <div class="login-link">
-            Sudah punya akun? <a href="login.html">Login di sini</a>
+        <div id="errorMessage" class="error-message">
+            Terjadi kesalahan saat registrasi!
+        </div>
+        <div id="successMessage" class="success-message">
+            Registrasi berhasil! Anda akan diarahkan ke halaman login.
+        </div>
+        <div class="nav-link">
+            <p>Sudah punya akun? <a href="login.html">Login di sini</a></p>
         </div>
     </div>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        window.onload = function () {
+            const apiUrl = localStorage.getItem('apiUrl');
+            const apiUrlDisplay = document.getElementById('apiUrlDisplay');
+
+            if (apiUrl) {
+                apiUrlDisplay.innerHTML = `API URL: ${apiUrl}`;
+            } else {
+                apiUrlDisplay.innerHTML = 'API URL belum diatur. <a href="index.html">Atur di sini</a>';
+            }
+        };
+        document.getElementById('registerForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
             const apiUrl = localStorage.getItem('apiUrl');
-            
+            if (!apiUrl) {
+                document.getElementById('errorMessage').textContent = 'API URL belum diatur!';
+                document.getElementById('errorMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('errorMessage').style.display = 'none';
+                    window.location.href = 'index.html';
+                }, 2000);
+                return;
+            }
+
+            document.getElementById('usernameError').style.display = 'none';
+            document.getElementById('passwordError').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+
+            if (password !== confirmPassword) {
+                document.getElementById('errorMessage').textContent = 'Password tidak cocok!';
+                document.getElementById('errorMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('errorMessage').style.display = 'none';
+                }, 3000);
+                return;
+            }
+
             try {
                 const response = await fetch(`${apiUrl}/api/register`, {
                     method: 'POST',
@@ -127,18 +199,34 @@
                         password: password
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     document.getElementById('successMessage').style.display = 'block';
-                    // Redirect ke login setelah 2 detik
                     setTimeout(() => {
                         window.location.href = 'login.html';
                     }, 2000);
+                } else if (response.status === 400 && data.errors) {
+                    const usernameErrors = data.errors.username;
+                    const passwordErrors = data.errors.password;
+
+                    if (usernameErrors) {
+                        document.getElementById('usernameError').textContent = usernameErrors.join(', ');
+                        document.getElementById('usernameError').style.display = 'block';
+                    }
+                    if (passwordErrors) {
+                        document.getElementById('passwordError').textContent = passwordErrors.join(', ');
+                        document.getElementById('passwordError').style.display = 'block';
+                    }
+
+                    setTimeout(() => {
+                        document.getElementById('usernameError').style.display = 'none';
+                        document.getElementById('passwordError').style.display = 'none';
+                    }, 3000);
                 } else {
-                    document.getElementById('errorMessage').textContent = 
-                        'Terjadi kesalahan saat registrasi!';
+                    document.getElementById('errorMessage').textContent =
+                        data.message || 'Terjadi kesalahan saat registrasi!';
                     document.getElementById('errorMessage').style.display = 'block';
                     setTimeout(() => {
                         document.getElementById('errorMessage').style.display = 'none';
@@ -151,9 +239,10 @@
                     document.getElementById('errorMessage').style.display = 'none';
                 }, 3000);
             }
-            
+
             this.reset();
         });
     </script>
 </body>
+
 </html>

@@ -72,12 +72,26 @@
             font-size: 14px;
             margin-top: 10px;
             display: none;
+        }.api-url {
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .api-url a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .api-url a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="detail-container">
         <h2>Detail Short Link</h2>
+        <div class="api-url" id="apiUrlDisplay"></div>
         <div class="shortlink-info" id="shortlinkInfo">
             <p><strong>ID:</strong> <span id="shortId"></span></p>
             <p><strong>URL Asli:</strong> <span id="url"></span></p>
@@ -97,7 +111,13 @@
             const token = localStorage.getItem('token');
             const apiUrl = localStorage.getItem('apiUrl');
             const shortLinkId = localStorage.getItem('shortLinkId');
+            const apiUrlDisplay = document.getElementById('apiUrlDisplay');
 
+            if (apiUrl) {
+                apiUrlDisplay.innerHTML = `API URL: ${apiUrl}`;
+            } else {
+                apiUrlDisplay.innerHTML = 'API URL belum diatur. <a href="index.html">Atur di sini</a>';
+            }
             if (!token || !apiUrl || !shortLinkId) {
                 window.location.href = 'login.html';
                 return;

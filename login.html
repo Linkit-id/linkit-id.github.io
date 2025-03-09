@@ -2,147 +2,210 @@
 <html lang="id">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login Page</title>
-  <style>
-    /* CSS sederhana untuk styling */
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f0f0f0;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
 
-    .login-container {
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      width: 300px;
-    }
+        .login-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
 
-    .form-group {
-      margin-bottom: 15px;
-    }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-    label {
-      display: block;
-      margin-bottom: 5px;
-    }
+        .form-group {
+            margin-bottom: 15px;
+        }
 
-    input {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
 
-    button {
-      width: 100%;
-      padding: 10px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
 
-    button:hover {
-      background-color: #0056b3;
-    }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
-    .error-message {
-      color: red;
-      font-size: 14px;
-      margin-top: 10px;
-      display: none;
-    }
+        button:hover {
+            background-color: #0056b3;
+        }
 
-    .login-link {
-    text-align: center;
-    margin-top: 15px;
-}
-.login-link a {
-    color: #007bff;
-    text-decoration: none;
-}
-.login-link a:hover {
-    text-decoration: underline;
-}
-  </style>
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+        }
+
+        .success-message {
+            color: green;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+        }
+
+        .nav-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .nav-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .nav-link a:hover {
+            text-decoration: underline;
+        }
+
+        .api-url {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .api-url a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .api-url a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 
 <body>
-  <div class="login-container">
-    <h2>Login</h2>
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-      </div>
-      <div class="form-group">
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-      </div>
-      <button type="submit">Login</button>
-      <div id="errorMessage" class="error-message">
-        Username atau password salah!
-      </div>
-      
-    </form>
-    <div class="login-link">
-      Belum punya akun? <a href="register.html">Register di sini</a>
-  </div>
-  </div>
+    <div class="login-container">
+        <h2>Login</h2>
+        <div class="api-url" id="apiUrlDisplay"></div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <div id="errorMessage" class="error-message">
+            Terjadi kesalahan saat login!
+        </div>
+        <div id="successMessage" class="success-message">
+            Login berhasil! Anda akan diarahkan ke dashboard.
+        </div>
+        <div class="nav-link">
+            <p>Belum punya akun? <a href="register.html">Register di sini</a></p>
+        </div>
+    </div>
 
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
+    <script>
+        window.onload = function () {
+            const apiUrl = localStorage.getItem('apiUrl');
+            const apiUrlDisplay = document.getElementById('apiUrlDisplay');
 
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      const apiUrl = localStorage.getItem('apiUrl');
+            if (apiUrl) {
+                apiUrlDisplay.innerHTML = `API URL: ${apiUrl}`;
+            } else {
+                apiUrlDisplay.innerHTML = 'API URL belum diatur. <a href="index.html">Atur di sini</a>';
+            }
+        };
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
 
-      try {
-        const response = await fetch(`${apiUrl}/api/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: username,
-            password: password
-          })
-        });
-
-        const responseJson = await response.json();
-        // console.log(data);
-
-        if (response.ok) {
-          alert('Login berhasil!');
-          // Simpan token atau redirect
-          localStorage.setItem('token', responseJson.data.token);
-          window.location.href = 'dashboard.html';
-        } else {
-          document.getElementById('errorMessage').innerHTML = '<p>' + responseJson.errors.message + '<p>';
-          document.getElementById('errorMessage').style.display = 'block';
-          setTimeout(() => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const apiUrl = localStorage.getItem('apiUrl');
+            if (!apiUrl) {
+                document.getElementById('errorMessage').textContent = 'API URL belum diatur!';
+                document.getElementById('errorMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('errorMessage').style.display = 'none';
+                    window.location.href = 'index.html';
+                }, 2000);
+                return;
+            }
             document.getElementById('errorMessage').style.display = 'none';
-          }, 3000);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('errorMessage').style.display = 'block';
-      }
 
-      this.reset();
-    });
-  </script>
+            try {
+                const response = await fetch(`${apiUrl}/api/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.data.token);
+                    document.getElementById('successMessage').style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                } else if (response.status === 400 && data.errors && data.errors.message) {
+                    document.getElementById('errorMessage').textContent = data.errors.message;
+                    document.getElementById('errorMessage').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('errorMessage').style.display = 'none';
+                    }, 3000);
+                } else {
+                    document.getElementById('errorMessage').textContent = 'Terjadi kesalahan saat login!';
+                    document.getElementById('errorMessage').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('errorMessage').style.display = 'none';
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('errorMessage').style.display = 'none';
+                }, 3000);
+            }
+
+            this.reset();
+        });
+    </script>
 </body>
 
 </html>

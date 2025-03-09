@@ -22,6 +22,13 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 
+    .field-error {
+      color: red;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+
     .profile-info {
       margin-bottom: 20px;
     }
@@ -114,6 +121,20 @@
       border-radius: 4px;
       box-sizing: border-box;
     }
+    .api-url {
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .api-url a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .api-url a:hover {
+            text-decoration: underline;
+        }
   </style>
   </style>
 </head>
@@ -121,6 +142,7 @@
 <body>
   <div class="profile-container">
     <h2>Profil Pengguna</h2>
+    <div class="api-url" id="apiUrlDisplay"></div>
     <div class="profile-info" id="profileInfo">
       <p><strong>ID:</strong> <span id="userId"></span></p>
       <p><strong>Username:</strong> <span id="username"></span> <button class="edit-btn"
@@ -134,6 +156,7 @@
       <div class="form-group">
         <label for="newUsername">Username Baru:</label>
         <input type="text" id="newUsername" required>
+        <div id="usernameError" class="field-error"></div>
       </div>
       <div class="button-group">
         <button class="save-btn" onclick="saveUsername()">Simpan</button>
@@ -145,6 +168,7 @@
       <div class="form-group">
         <label for="newPassword">Password Baru:</label>
         <input type="password" id="newPassword" required>
+        <div id="passwordError" class="field-error"></div>
       </div>
       <div class="form-group">
         <label for="confirmPassword">Konfirmasi Password:</label>
@@ -171,7 +195,13 @@
     window.onload = async function () {
       const token = localStorage.getItem('token');
       const apiUrl = localStorage.getItem('apiUrl');
+      const apiUrlDisplay = document.getElementById('apiUrlDisplay');
 
+if (apiUrl) {
+    apiUrlDisplay.innerHTML = `API URL: ${apiUrl}`;
+} else {
+    apiUrlDisplay.innerHTML = 'API URL belum diatur. <a href="index.html">Atur di sini</a>';
+}
       if (!token || !apiUrl) {
         window.location.href = 'login.html';
         return;
@@ -239,7 +269,7 @@
         const response = await fetch(`${apiUrl}/api/user/update`, {
           method: 'PATCH',
           headers: {
-            'Authorization': token, 
+            'Authorization': token,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ username: newUsername })
@@ -251,12 +281,29 @@
           return;
         }
 
+        const data = await response.json();
+        console.log(data);
+        console.log(response.status === 400 && data.errors);
+
+
         if (response.ok) {
           await fetchProfileData();
           showSuccess('Username berhasil diperbarui!');
           cancelEdit();
+        } else if (response.status === 400 && data.errors) {
+          const usernameErrors = data.errors.username;
+          console.log(usernameErrors);
+
+
+          if (usernameErrors) {
+            document.getElementById('usernameError').textContent = usernameErrors.join(', ');
+            document.getElementById('usernameError').style.display = 'block';
+          }
+
+          setTimeout(() => {
+            document.getElementById('usernameError').style.display = 'none';
+          }, 3000);
         } else {
-          const data = await response.json();
           showError('Gagal memperbarui username!');
         }
       } catch (error) {
@@ -292,12 +339,22 @@
           return;
         }
 
+        const data = await response.json();
         if (response.ok) {
           await fetchProfileData();
           showSuccess('Password berhasil diperbarui!');
           cancelEdit();
+        } else if (response.status === 400 && data.errors) {
+          const passwordErrors = data.errors.password;
+          if (passwordErrors) {
+            document.getElementById('passwordError').textContent = passwordErrors.join(', ');
+            document.getElementById('passwordError').style.display = 'block';
+          }
+
+          setTimeout(() => {
+            document.getElementById('passwordError').style.display = 'none';
+          }, 3000);
         } else {
-          const data = await response.json();
           showError('Gagal memperbarui password!');
         }
       } catch (error) {
