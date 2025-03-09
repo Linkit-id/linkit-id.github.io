@@ -257,7 +257,7 @@
           cancelEdit();
         } else {
           const data = await response.json();
-          showError(data.message || 'Gagal memperbarui username!');
+          showError('Gagal memperbarui username!');
         }
       } catch (error) {
         console.error('Error:', error);
@@ -298,7 +298,7 @@
           cancelEdit();
         } else {
           const data = await response.json();
-          showError(data.message || 'Gagal memperbarui password!');
+          showError('Gagal memperbarui password!');
         }
       } catch (error) {
         console.error('Error:', error);
