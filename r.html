@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        p {
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <p>Mengarahkan ke URL asli...</p>
+
+    <script>
+        window.onload = async function() {
+            // Ambil apiUrl dari localStorage
+            const apiUrl = localStorage.getItem('apiUrl');
+            if (!apiUrl) {
+                alert('URL API tidak ditemukan. Silakan masukkan di halaman utama.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Ambil parameter 'short' dari URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const shortCode = urlParams.get('short');
+            if (!shortCode) {
+                alert('Short code tidak ditemukan di URL!');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                // Fetch ke endpoint /{short} di API
+                const response = await fetch(`${apiUrl}/${shortCode}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                const originalUrl = data.data.url;
+
+                // Redirect langsung ke URL asli
+                window.location.href = originalUrl;
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Gagal mengambil URL asli!');
+                window.location.href = 'index.html';
+            }
+        };
+    </script>
+</body>
+</html>

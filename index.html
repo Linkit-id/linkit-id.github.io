@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set API URL</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+
+    .api-container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 400px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="api-container">
+    <h2>Masukkan URL API</h2>
+    <form id="apiForm">
+      <div class="form-group">
+        <label for="apiUrl">URL API:</label>
+        <input type="url" id="apiUrl" name="apiUrl" placeholder="https://example.com/api" required>
+      </div>
+      <button type="submit">Lanjutkan</button>
+      <div id="errorMessage" class="error-message">
+        URL tidak valid!
+      </div>
+    </form>
+  </div>
+
+  <script>
+    console.log(window.location.pathname.substring(2));
+    document.getElementById('apiForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const apiUrl = document.getElementById('apiUrl').value;
+
+      // Validasi sederhana URL
+      try {
+        new URL(apiUrl); // Akan throw error jika URL tidak valid
+        // Simpan URL di localStorage
+        localStorage.setItem('apiUrl', apiUrl);
+        // Redirect ke login
+        window.location.href = 'login.html';
+      } catch (error) {
+        document.getElementById('errorMessage').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('errorMessage').style.display = 'none';
+        }, 3000);
+      }
+    });
+
+    // Cek jika sudah ada apiUrl di localStorage
+    window.onload = function () {
+      const storedApiUrl = localStorage.getItem('apiUrl');
+      if (storedApiUrl) {
+        document.getElementById('apiUrl').value = storedApiUrl;
+      }
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        
+        .dashboard-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+        }
+        
+        .logout-btn {
+            background-color: #dc3545;
+        }
+        
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .profile-btn {
+            background-color: #28a745;
+        }
+        
+        .profile-btn:hover {
+            background-color: #218838;
+        }
+        
+        .create-btn {
+            background-color: #007bff;
+        }
+        
+        .create-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .delete-btn {
+            background-color: #dc3545;
+            padding: 6px 12px;
+        }
+        
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .detail-btn {
+            background-color: #17a2b8;
+            padding: 6px 12px;
+        }
+        
+        .detail-btn:hover {
+            background-color: #138496;
+        }
+        
+        .original-btn {
+            background-color: #ffc107;
+            padding: 6px 12px;
+        }
+        
+        .original-btn:hover {
+            background-color: #e0a800;
+        }
+        
+        .short-links {
+            margin-top: 20px;
+        }
+        
+        .create-form {
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+        }
+        
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .short-url {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .short-url:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .success-message {
+            color: green;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h2>Selamat Datang di Dashboard</h2>
+        <div class="button-group">
+            <button class="profile-btn" onclick="goToProfile()">Lihat Profil</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+        
+        <div class="create-form">
+            <h3>Buat Short Link Baru</h3>
+            <form id="createShortLinkForm">
+                <div class="form-group">
+                    <label for="url">URL:</label>
+                    <input type="url" id="url" name="url" placeholder="https://example.com" required>
+                </div>
+                <button type="submit" class="create-btn">Buat Short Link</button>
+                <div id="createError" class="error-message">
+                    Gagal membuat short link!
+                </div>
+                <div id="createSuccess" class="success-message">
+                    Short link berhasil dibuat!
+                </div>
+            </form>
+        </div>
+        
+        <div class="short-links">
+            <h3>Daftar Short Link</h3>
+            <table id="shortLinksTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>URL Asli</th>
+                        <th>Short Link</th>
+                        <th>Terakhir Diperbarui</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="shortLinksBody"></tbody>
+            </table>
+            <div id="errorMessage" class="error-message">
+                Gagal memuat daftar short link!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = async function() {
+            const token = localStorage.getItem('token');
+            const apiUrl = localStorage.getItem('apiUrl');
+            
+            if (!token || !apiUrl) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            await fetchShortLinks();
+        }
+
+        async function fetchShortLinks() {
+            const token = localStorage.getItem('token');
+            const apiUrl = localStorage.getItem('apiUrl');
+            const tableBody = document.getElementById('shortLinksBody');
+
+            try {
+                const response = await fetch(`${apiUrl}/api/short/show`, {
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                const shortLinks = data.data;
+
+                shortLinks.sort((a, b) => new Date(b.updated_at || Date.now()) - new Date(a.updated_at || Date.now()));
+
+                tableBody.innerHTML = '';
+                shortLinks.forEach(link => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${link.id}</td>
+                        <td>${link.url}</td>
+                        <td><a href="${window.location.origin}/r.html?short=${link.short}" class="short-url" target="_blank">${window.location.origin}/r.html?short=${link.short}</a></td>
+                        <td>${new Date(link.updated_at || Date.now()).toLocaleString('id-ID')}</td>
+                        <td>
+                            <button class="detail-btn" onclick="goToDetail('${link.id}')">Detail</button>
+                            <button class="delete-btn" onclick="deleteShortLink('${link.id}')">Delete</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('errorMessage').style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        document.getElementById('createShortLinkForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('url').value;
+            const token = localStorage.getItem('token');
+            const apiUrl = localStorage.getItem('apiUrl');
+
+            try {
+                const response = await fetch(`${apiUrl}/api/short/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                const newShortLink = data.data;
+
+                document.getElementById('createSuccess').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('createSuccess').style.display = 'none';
+                }, 3000);
+
+                await fetchShortLinks();
+                this.reset();
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('createError').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('createError').style.display = 'none';
+                }, 3000);
+            }
+        });
+
+        async function deleteShortLink(id) {
+            if (!confirm('Apakah Anda yakin ingin menghapus short link ini?')) return;
+
+            const token = localStorage.getItem('token');
+            const apiUrl = localStorage.getItem('apiUrl');
+
+            try {
+                const response = await fetch(`${apiUrl}/api/short/delete/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                await fetchShortLinks();
+                alert('Short link berhasil dihapus!');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorMessage').textContent = 'Gagal menghapus short link!';
+                document.getElementById('errorMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('errorMessage').style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function goToDetail(id) {
+            localStorage.setItem('shortLinkId', id);
+            window.location.href = 'shortlink-detail.html';
+        }
+
+        function goToProfile() {
+            window.location.href = 'profile.html';
+        }
+
+        async function logout() {
+            const token = localStorage.getItem('token');
+            const apiUrl = localStorage.getItem('apiUrl');
+
+            try {
+                const response = await fetch(`${apiUrl}/api/user/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (response.ok && data.data === true) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                } else {
+                    console.error('Logout failed:', data);
+                    alert('Gagal logout. Silakan coba lagi.');
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+                alert('Terjadi kesalahan saat logout.');
+            }
+        }
+    </script>
+</body>
+</html>

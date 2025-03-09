@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+
+    .profile-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-info {
+      margin-bottom: 20px;
+    }
+
+    .profile-info p {
+      margin: 10px 0;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .edit-btn {
+      background-color: #ffc107;
+      margin-left: 10px;
+    }
+
+    .edit-btn:hover {
+      background-color: #e0a800;
+    }
+
+    .save-btn {
+      background-color: #28a745;
+    }
+
+    .save-btn:hover {
+      background-color: #218838;
+    }
+
+    .cancel-btn {
+      background-color: #6c757d;
+    }
+
+    .cancel-btn:hover {
+      background-color: #5a6268;
+    }
+
+    .logout-btn {
+      background-color: #dc3545;
+    }
+
+    .logout-btn:hover {
+      background-color: #c82333;
+    }
+
+    .dashboard-btn {
+      background-color: #007bff;
+    }
+
+    .dashboard-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .success-message {
+      color: green;
+      font-size: 14px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .edit-form {
+      display: none;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+  </style>
+  </style>
+</head>
+
+<body>
+  <div class="profile-container">
+    <h2>Profil Pengguna</h2>
+    <div class="profile-info" id="profileInfo">
+      <p><strong>ID:</strong> <span id="userId"></span></p>
+      <p><strong>Username:</strong> <span id="username"></span> <button class="edit-btn"
+          onclick="showEditForm('username')">Edit</button></p>
+      <p><strong>Password:</strong> ******** <button class="edit-btn" onclick="showEditForm('password')">Edit</button>
+      </p>
+      <p><strong>Terakhir Diperbarui:</strong> <span id="updatedAt"></span></p>
+    </div>
+
+    <div class="edit-form" id="editUsernameForm">
+      <div class="form-group">
+        <label for="newUsername">Username Baru:</label>
+        <input type="text" id="newUsername" required>
+      </div>
+      <div class="button-group">
+        <button class="save-btn" onclick="saveUsername()">Simpan</button>
+        <button class="cancel-btn" onclick="cancelEdit()">Batal</button>
+      </div>
+    </div>
+
+    <div class="edit-form" id="editPasswordForm">
+      <div class="form-group">
+        <label for="newPassword">Password Baru:</label>
+        <input type="password" id="newPassword" required>
+      </div>
+      <div class="form-group">
+        <label for="confirmPassword">Konfirmasi Password:</label>
+        <input type="password" id="confirmPassword" required>
+      </div>
+      <div class="button-group">
+        <button class="save-btn" onclick="savePassword()">Simpan</button>
+        <button class="cancel-btn" onclick="cancelEdit()">Batal</button>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button class="dashboard-btn" onclick="goToDashboard()">Kembali ke Dashboard</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div id="errorMessage" class="error-message"></div>
+    <div id="successMessage" class="success-message"></div>
+  </div>
+
+  <script>
+    let currentEditField = null;
+
+    window.onload = async function () {
+      const token = localStorage.getItem('token');
+      const apiUrl = localStorage.getItem('apiUrl');
+
+      if (!token || !apiUrl) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      await fetchProfileData();
+    }
+
+    async function fetchProfileData() {
+      const token = localStorage.getItem('token');
+      const apiUrl = localStorage.getItem('apiUrl');
+
+      try {
+        const response = await fetch(`${apiUrl}/api/user/get`, {
+          method: 'GET',
+          headers: {
+            'Authorization': token, // Tanpa "Bearer"
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        const userData = data.data;
+
+        document.getElementById('userId').textContent = userData.id;
+        document.getElementById('username').textContent = userData.username;
+        document.getElementById('updatedAt').textContent = new Date(userData.updated_at).toLocaleString('id-ID');
+      } catch (error) {
+        console.error('Error:', error);
+        showError('Gagal memuat data profil!');
+      }
+    }
+
+    function showEditForm(field) {
+      currentEditField = field;
+      document.getElementById('editUsernameForm').style.display = field === 'username' ? 'block' : 'none';
+      document.getElementById('editPasswordForm').style.display = field === 'password' ? 'block' : 'none';
+    }
+
+    function cancelEdit() {
+      currentEditField = null;
+      document.getElementById('editUsernameForm').style.display = 'none';
+      document.getElementById('editPasswordForm').style.display = 'none';
+      document.getElementById('newUsername').value = '';
+      document.getElementById('newPassword').value = '';
+      document.getElementById('confirmPassword').value = '';
+    }
+
+    async function saveUsername() {
+      const newUsername = document.getElementById('newUsername').value;
+      const token = localStorage.getItem('token');
+      const apiUrl = localStorage.getItem('apiUrl');
+
+      try {
+        const response = await fetch(`${apiUrl}/api/user/update`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': token, // Tanpa "Bearer"
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username: newUsername })
+        });
+
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        if (response.ok) {
+          await fetchProfileData();
+          showSuccess('Username berhasil diperbarui!');
+          cancelEdit();
+        } else {
+          const data = await response.json();
+          showError(data.message || 'Gagal memperbarui username!');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showError('Terjadi kesalahan saat memperbarui username!');
+      }
+    }
+
+    async function savePassword() {
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const token = localStorage.getItem('token');
+      const apiUrl = localStorage.getItem('apiUrl');
+
+      if (newPassword !== confirmPassword) {
+        showError('Password tidak cocok!');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiUrl}/api/user/update`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': token, // Tanpa "Bearer"
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ password: newPassword })
+        });
+
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        if (response.ok) {
+          await fetchProfileData();
+          showSuccess('Password berhasil diperbarui!');
+          cancelEdit();
+        } else {
+          const data = await response.json();
+          showError(data.message || 'Gagal memperbarui password!');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showError('Terjadi kesalahan saat memperbarui password!');
+      }
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      setTimeout(() => { errorDiv.style.display = 'none'; }, 3000);
+    }
+
+    function showSuccess(message) {
+      const successDiv = document.getElementById('successMessage');
+      successDiv.textContent = message;
+      successDiv.style.display = 'block';
+      setTimeout(() => { successDiv.style.display = 'none'; }, 3000);
+    }
+
+    function goToDashboard() {
+      window.location.href = 'dashboard.html';
+    }
+
+    async function logout() {
+      const token = localStorage.getItem('token');
+      const apiUrl = localStorage.getItem('apiUrl');
+
+      try {
+        const response = await fetch(`${apiUrl}/api/user/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': token, // Tanpa "Bearer"
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        const data = await response.json();
+
+        if (response.ok && data.data === true) {
+          localStorage.removeItem('token');
+          window.location.href = 'login.html';
+        } else {
+          console.error('Logout failed:', data);
+          showError('Gagal logout. Silakan coba lagi.');
+        }
+      } catch (error) {
+        console.error('Error during logout:', error);
+        showError('Terjadi kesalahan saat logout.');
+      }
+    }
+  </script>
+</body>
+
+</html>

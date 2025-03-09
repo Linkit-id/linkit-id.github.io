@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Short Link</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        
+        .detail-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .shortlink-info {
+            margin-bottom: 20px;
+        }
+        
+        .shortlink-info p {
+            margin: 10px 0;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+        }
+        
+        .back-btn {
+            background-color: #007bff;
+        }
+        
+        .back-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .original-btn {
+            background-color: #ffc107;
+        }
+        
+        .original-btn:hover {
+            background-color: #e0a800;
+        }
+        
+        .short-url {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .short-url:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="detail-container">
+        <h2>Detail Short Link</h2>
+        <div class="shortlink-info" id="shortlinkInfo">
+            <p><strong>ID:</strong> <span id="shortId"></span></p>
+            <p><strong>URL Asli:</strong> <span id="url"></span></p>
+            <p><strong>Short Link:</strong> <a id="shortLink" class="short-url" target="_blank"></a></p>
+            <p><strong>Terakhir Diperbarui:</strong> <span id="updatedAt"></span></p>
+        </div>
+        <div class="button-group">
+            <button class="back-btn" onclick="goToDashboard()">Kembali ke Dashboard</button>
+        </div>
+        <div id="errorMessage" class="error-message">
+            Gagal memuat detail short link!
+        </div>
+    </div>
+
+    <script>
+        window.onload = async function() {
+            const token = localStorage.getItem('token');
+            const apiUrl = localStorage.getItem('apiUrl');
+            const shortLinkId = localStorage.getItem('shortLinkId');
+
+            if (!token || !apiUrl || !shortLinkId) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            await fetchShortLinkDetail(shortLinkId);
+        }
+
+        async function fetchShortLinkDetail(id) {
+            const token = localStorage.getItem('token');
+            const apiUrl = localStorage.getItem('apiUrl');
+
+            try {
+                const response = await fetch(`${apiUrl}/api/short/show/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                const shortLink = data.data;
+
+                document.getElementById('shortId').textContent = shortLink.id;
+                document.getElementById('url').textContent = shortLink.url;
+                const shortLinkElement = document.getElementById('shortLink');
+                shortLinkElement.textContent = `${window.location.origin}/r.html?short=${shortLink.short}`;
+                shortLinkElement.href = `${window.location.origin}/r.html?short=${shortLink.short}`;
+                document.getElementById('updatedAt').textContent = new Date(shortLink.updated_at).toLocaleString('id-ID');
+
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('errorMessage').style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function goToDashboard() {
+            localStorage.removeItem('shortLinkId');
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>
