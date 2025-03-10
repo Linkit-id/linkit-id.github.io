@@ -310,7 +310,7 @@
                     card.className = 'card';
                     card.innerHTML = `
                         <div class="card-field"><strong>URL Asli:</strong> ${link.url}</div>
-                        <div class="card-field"><strong>Short Link:</strong> <a href="${window.location.origin}/redirect.html?short=${link.short}" class="short-url" target="_blank">${link.short}</a></div>
+                        <div class="card-field"><strong>Short Link:</strong> <a href="${window.location.origin}/r.html?short=${link.short}" class="short-url" target="_blank">${link.short}</a></div>
                         <div class="card-field"><strong>Terakhir Diperbarui:</strong> ${new Date(link.updated_at || Date.now()).toLocaleString('id-ID')}</div>
                         <div class="card-actions">
                             <button class="detail-btn" onclick="goToDetail('${link.id}')">Detail</button>
@@ -409,10 +409,6 @@
                     document.getElementById('errorMessage').style.display = 'none';
                 }, 3000);
             }
-        }
-
-        function redirectToOriginal(short) {
-            window.location.href = `${window.location.origin}/redirect.html?short=${short}`;
         }
 
         function goToDetail(id) {

@@ -88,10 +88,8 @@
 
       // Validasi sederhana URL
       try {
-        new URL(apiUrl); // Akan throw error jika URL tidak valid
-        // Simpan URL di localStorage
+        new URL(apiUrl);
         localStorage.setItem('apiUrl', apiUrl);
-        // Redirect ke login
         window.location.href = 'login.html';
       } catch (error) {
         document.getElementById('errorMessage').style.display = 'block';
@@ -101,7 +99,6 @@
       }
     });
 
-    // Cek jika sudah ada apiUrl di localStorage
     window.onload = function () {
       const storedApiUrl = localStorage.getItem('apiUrl');
       if (storedApiUrl) {
