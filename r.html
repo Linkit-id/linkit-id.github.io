@@ -44,7 +44,7 @@
 
             try {
                 // Fetch ke endpoint /{short} di API
-                const response = await fetch(`${apiUrl}/${shortCode}`, {
+                const response = await fetch(`${apiUrl}/api/${shortCode}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
